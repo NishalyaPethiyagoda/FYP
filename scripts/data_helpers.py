@@ -71,7 +71,21 @@ class DataGenerator(Sequence):
             
     def __data_generation(self, indexes, batch):      
         """Augments or/and pretransforms data"""
-        patches = [prepare_patch(img, self.patch_size, self.mask, (self.epoch * idx) % (2**32 - 1)) 
-                   for idx, img in zip(indexes, batch)]
+        patches = [
+            prepare_patch(img, self.patch_size, self.mask, (self.epoch * idx) % (2**32 - 1)) 
+                   for idx, img in zip(indexes, batch)
+            ]
 
         return np.array(patches)
+    
+class TestDataGenerator(Sequence):
+    """Generates data for Keras"""
+    def __init__(self, patch_size, center_size):
+        self.patch_size = patch_size
+        self.center_size = center_size
+        self.mask = create_center_mask(patch_size, center_size)
+
+    def generate_patches(self, img):
+        """Generate patches from a single image"""
+        patches = [prepare_patch(img, self.patch_size, self.mask, seed) for seed in range(len(img))]
+        return patches

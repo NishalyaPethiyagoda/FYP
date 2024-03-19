@@ -22,10 +22,22 @@ def transform_image(img):
     image.save(output, format='PNG')
     image_string = output.getvalue()
     output.close()
-    return tf.Summary.Image(height=height,
-                            width=width,
-                            colorspace=num_channels,
-                            encoded_image_string=image_string)
+
+    # return tf.summary.image(height=height,
+    #                         width=width,
+    #                         colorspace=num_channels,
+    #                         encoded_image_string=image_string)
+
+#added part
+    # Decode the image string
+    image_tensor = tf.image.decode_png(image_string, channels=num_channels)
+    # Reshape if necessary
+    if num_channels > 1:
+        image_tensor = tf.reshape(image_tensor, (height, width, num_channels))
+
+    return image_tensor
+
+    
 
 
 class TensorBoardImages(Callback):
@@ -40,7 +52,7 @@ class TensorBoardImages(Callback):
         self.writer = tf.summary.create_file_writer(logdir)
 
 
-    def on_epoch_end(self, epoch):
+    def on_epoch_end(self, epoch, logs=None):
         if epoch % self.vis_every == 0:
 
             # Create tensorflow summaries for images
@@ -52,8 +64,12 @@ class TensorBoardImages(Callback):
                     orig_summary = tf.summary.image('Original_{}_{}'.format(dataset, i), transform_image(orig), step=epoch)
                     pred_summary = tf.summary.image('Predicted_{}_{}'.format(dataset, i), transform_image(pred), step=epoch)
 
-                    self.writer.add_summary(orig_summary, epoch)
-                    self.writer.add_summary(pred_summary, epoch)
+                    # Write the summaries to the file writer
+                    tf.summary.scalar('Epoch', epoch, step=epoch)
+                    tf.summary.histogram('Original_{}_{}'.format(dataset, i), orig, step=epoch)
+                    tf.summary.histogram('Predicted_{}_{}'.format(dataset, i), pred, step=epoch)
+
+                    self.writer.flush()  # Flush to write summaries to disk
 
     def on_train_end(self):
         self.writer.close()
