@@ -65,13 +65,13 @@ class TensorBoardImages(Callback):
                     pred_summary = tf.summary.image('Predicted_{}_{}'.format(dataset, i), transform_image(pred), step=epoch)
 
                     # Write the summaries to the file writer
-                    tf.summary.scalar('Epoch', epoch, step=epoch)
-                    tf.summary.histogram('Original_{}_{}'.format(dataset, i), orig, step=epoch)
-                    tf.summary.histogram('Predicted_{}_{}'.format(dataset, i), pred, step=epoch)
+                    # tf.summary.scalar('Epoch', epoch, step=epoch)
+                    tf.summary.histogram('Original_{}_{}'.format(dataset, i), orig_summary, step=epoch)
+                    tf.summary.histogram('Predicted_{}_{}'.format(dataset, i), pred_summary, step=epoch)
 
                     self.writer.flush()  # Flush to write summaries to disk
 
-    def on_train_end(self):
+    def on_train_end(self, logs = None):
         self.writer.close()
             
             
